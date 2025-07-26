@@ -1,7 +1,7 @@
 {
     "model_name_or_path": "segment-any-text/sat-12l",
     "output_dir": "sat-12l_lora_DUMMY-EXAMPLE",
-    "text_path": "wtpsplit/utils/dummy-dataset.pth",
+    "text_path": "wtpsplit/utils/war_and_peace.pth",
     "block_size": 256,
     "eval_stride": 128,
     "do_train": true,

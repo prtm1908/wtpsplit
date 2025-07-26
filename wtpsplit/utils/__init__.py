@@ -47,13 +47,20 @@ class ConstantsClass:
     def PUNCTUATION_CHARS(self):
         punctuation_path = os.path.join(self.ROOT_DIR, "data", self._PUNCTUATION_FILE)
         if os.path.exists(punctuation_path):
-            return [x.strip() for x in open(punctuation_path).readlines()]
+            # Explicitly use UTF-8 because the punctuation list contains many
+            # non-ASCII code points that are not representable in the default
+            # Windows code page (cp1252), which would otherwise raise a
+            # ``UnicodeDecodeError`` when running on Windows.
+            with open(punctuation_path, encoding="utf-8") as f:
+                return [x.strip() for x in f.readlines()]
         else:
             raise FileNotFoundError(f"The file {punctuation_path} does not exist.")
 
     @cached_property
     def PUNCTUATION_MAP(self):
-        return json.load(open(os.path.join(self.ROOT_DIR, "data", "punctuation.json")))
+        punctuation_json_path = os.path.join(self.ROOT_DIR, "data", "punctuation.json")
+        with open(punctuation_json_path, encoding="utf-8") as f:
+            return json.load(f)
 
     @cached_property
     def LANG_CODE_TO_INDEX(self):

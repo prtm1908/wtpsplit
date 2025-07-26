@@ -395,7 +395,26 @@ def main():
         wandb.config.update(adapter_args)
 
         for file in glob(os.path.join(os.path.dirname(__file__), "*.py")):
-            wandb.save(os.path.abspath(file), policy="now")
+            abs_path = os.path.abspath(file)
+            try:
+                # On Windows, creating symlinks requires special privileges
+                # that are often not available in regular user sessions.
+                # ``wandb.save`` tries to create a symbolic link first and
+                # crashes with ``WinError 1314`` if it fails.  We catch that
+                # specific error and simply skip saving the file – the source
+                # code is already under version control, so it can always be
+                # retrieved later from the repo.
+                wandb.save(abs_path, policy="now")
+            except OSError as e:
+                if getattr(e, "winerror", None) == 1314:
+                    # Privilege not held: silently ignore.
+                    logger.warning(
+                        "Skipping wandb.save for %s because symlink creation "
+                        "is not permitted on this system (%s).", abs_path, e
+                    )
+                else:
+                    # Re-raise any other unexpected errors.
+                    raise
 
     for lang in tqdm(data.keys(), desc="Language"):
         if lang in args.include_languages:
@@ -419,6 +438,9 @@ def main():
                 # needed since we create labels in collate_fn based on tokens
                 tokenizer.add_special_tokens({"additional_special_tokens": [AddedToken("\n")]})
                 custom_token_id = tokenizer.convert_tokens_to_ids("\n")
+                # Make sure backbone can handle the extra token
+                if len(tokenizer) > backbone.get_input_embeddings().num_embeddings:
+                    backbone.resize_token_embeddings(len(tokenizer))
                 # used later to filter out special tokens
                 special_tokens_ids = set(tokenizer.all_special_ids)
                 special_tokens_ids.discard(custom_token_id)

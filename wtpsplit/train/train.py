@@ -254,6 +254,8 @@ def main():
         # needed since we create labels in collate_fn based on tokens
         tokenizer.add_special_tokens({"additional_special_tokens": [AddedToken("\n")]})
         custom_token_id = tokenizer.convert_tokens_to_ids("\n")
+        if len(tokenizer) > backbone.get_input_embeddings().num_embeddings:
+            backbone.resize_token_embeddings(len(tokenizer))
         # used later to filter out special tokens
         special_tokens_ids = set(tokenizer.all_special_ids)
         special_tokens_ids.discard(custom_token_id)
