@@ -11,13 +11,11 @@ notebooks
 final_outputs
 .cache*
 data_subset/**
-*.pth
 *.zip
 *.bin
 *.html
 *.csv
 *.png
-*.txt
 *.log
 xlmr-*/**
 **/checkpoint-*/**
